@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Keyboard Test</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #f5f5f7;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      user-select: none;
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #888;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    /* ── log strip ── */
+    #log {
+      width: 820px;
+      max-width: 96vw;
+      height: 44px;
+      background: #fff;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 8px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+
+    #log .label {
+      font-size: .72rem;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #log-entries {
+      display: flex;
+      gap: 6px;
+      overflow: hidden;
+      flex-direction: row-reverse;
+      width: 100%;
+    }
+
+    .log-chip {
+      background: #f0f0f3;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-size: .8rem;
+      color: #444;
+      white-space: nowrap;
+      animation: fadeIn .12s ease;
+      flex-shrink: 0;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
+
+    /* ── keyboard wrapper ── */
+    #keyboard {
+      background: #fff;
+      border: 1px solid #e4e4e7;
+      border-radius: 20px;
+      padding: 22px 22px 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .row {
+      display: flex;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    /* ── key base ── */
+    .key {
+      position: relative;
+      min-width: 44px;
+      height: 44px;
+      background: #fff;
+      border: 1.5px solid #e0e0e5;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background .08s, border-color .08s, box-shadow .08s, transform .06s;
+      box-shadow: 0 2px 0 #dcdce3, 0 2px 4px rgba(0,0,0,.05);
+      gap: 1px;
+    }
+
+    .key:hover {
+      border-color: #c0c0cc;
+      box-shadow: 0 2px 0 #c8c8d2, 0 3px 8px rgba(0,0,0,.08);
+    }
+
+    /* pressed state */
+    .key.active {
+      background: #1a1a2e;
+      border-color: #1a1a2e;
+      color: #fff;
+      box-shadow: 0 0 0 #aaa, 0 1px 3px rgba(0,0,0,.15);
+      transform: translateY(2px);
+    }
+
+    .key.active .main,
+    .key.active .sub { color: #fff; }
+
+    /* recently pressed (fades out) */
+    .key.recent {
+      background: #f0f0ff;
+      border-color: #a0a0e0;
+    }
+
+    .main {
+      font-size: .82rem;
+      font-weight: 500;
+      color: #222;
+      line-height: 1;
+    }
+
+    .sub {
+      font-size: .6rem;
+      color: #999;
+      line-height: 1;
+    }
+
+    /* ── size variants ── */
+    .w-1  { min-width: 44px; }
+    .w-15 { min-width: 66px; }
+    .w-2  { min-width: 94px; }
+    .w-25 { min-width: 116px; }
+    .w-3  { min-width: 138px; }
+    .w-7  { min-width: 330px; }
+    .w-backspace { min-width: 94px; }
+
+    /* ── status bar ── */
+    #modifiers {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .mod-badge {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      background: #f0f0f3;
+      color: #bbb;
+      border: 1.5px solid transparent;
+      transition: all .1s;
+    }
+
+    .mod-badge.on {
+      background: #1a1a2e;
+      color: #fff;
+      border-color: #1a1a2e;
+    }
+
+    /* ── clear button ── */
+    #clear-btn {
+      margin-top: 20px;
+      padding: 8px 24px;
+      background: none;
+      border: 1.5px solid #ddd;
+      border-radius: 20px;
+      font-size: .78rem;
+      color: #aaa;
+      cursor: pointer;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      transition: border-color .1s, color .1s;
+    }
+    #clear-btn:hover { border-color: #999; color: #555; }
+  </style>
+</head>
+<body>
+
+<h1>Keyboard Test</h1>
+
+<div id="log">
+  <span class="label">Last</span>
+  <div id="log-entries"></div>
+</div>
+
+<div id="keyboard"></div>
+
+<div id="modifiers">
+  <div class="mod-badge" id="badge-shift">Shift</div>
+  <div class="mod-badge" id="badge-ctrl">Ctrl</div>
+  <div class="mod-badge" id="badge-alt">Alt</div>
+  <div class="mod-badge" id="badge-meta">Meta</div>
+  <div class="mod-badge" id="badge-caps">Caps</div>
+</div>
+
+<button id="clear-btn" onclick="clearLog()">Clear Log</button>
+
+<script>
+// ── layout definition ──────────────────────────────────────────────────────
+const ROWS = [
+  [
+    { label:'`',  sub:'~',   code:'Backquote',  w:1 },
+    { label:'1',  sub:'!',   code:'Digit1',     w:1 },
+    { label:'2',  sub:'@',   code:'Digit2',     w:1 },
+    { label:'3',  sub:'#',   code:'Digit3',     w:1 },
+    { label:'4',  sub:'$',   code:'Digit4',     w:1 },
+    { label:'5',  sub:'%',   code:'Digit5',     w:1 },
+    { label:'6',  sub:'^',   code:'Digit6',     w:1 },
+    { label:'7',  sub:'&',   code:'Digit7',     w:1 },
+    { label:'8',  sub:'*',   code:'Digit8',     w:1 },
+    { label:'9',  sub:'(',   code:'Digit9',     w:1 },
+    { label:'0',  sub:')',   code:'Digit0',     w:1 },
+    { label:'-',  sub:'_',   code:'Minus',      w:1 },
+    { label:'=',  sub:'+',   code:'Equal',      w:1 },
+    { label:'⌫',            code:'Backspace',  w:'backspace' },
+  ],
+  [
+    { label:'Tab',           code:'Tab',        w:15 },
+    { label:'Q',             code:'KeyQ',       w:1 },
+    { label:'W',             code:'KeyW',       w:1 },
+    { label:'E',             code:'KeyE',       w:1 },
+    { label:'R',             code:'KeyR',       w:1 },
+    { label:'T',             code:'KeyT',       w:1 },
+    { label:'Y',             code:'KeyY',       w:1 },
+    { label:'U',             code:'KeyU',       w:1 },
+    { label:'I',             code:'KeyI',       w:1 },
+    { label:'O',             code:'KeyO',       w:1 },
+    { label:'P',             code:'KeyP',       w:1 },
+    { label:'[',  sub:'{',   code:'BracketLeft', w:1 },
+    { label:']',  sub:'}',   code:'BracketRight',w:1 },
+    { label:'\\', sub:'|',   code:'Backslash',  w:15 },
+  ],
+  [
+    { label:'Caps',          code:'CapsLock',   w:2 },
+    { label:'A',             code:'KeyA',       w:1 },
+    { label:'S',             code:'KeyS',       w:1 },
+    { label:'D',             code:'KeyD',       w:1 },
+    { label:'F',             code:'KeyF',       w:1 },
+    { label:'G',             code:'KeyG',       w:1 },
+    { label:'H',             code:'KeyH',       w:1 },
+    { label:'J',             code:'KeyJ',       w:1 },
+    { label:'K',             code:'KeyK',       w:1 },
+    { label:'L',             code:'KeyL',       w:1 },
+    { label:';',  sub:':',   code:'Semicolon',  w:1 },
+    { label:"'",  sub:'"',   code:'Quote',      w:1 },
+    { label:'↵',             code:'Enter',      w:25 },
+  ],
+  [
+    { label:'⇧ Shift',       code:'ShiftLeft',  w:25 },
+    { label:'Z',             code:'KeyZ',       w:1 },
+    { label:'X',             code:'KeyX',       w:1 },
+    { label:'C',             code:'KeyC',       w:1 },
+    { label:'V',             code:'KeyV',       w:1 },
+    { label:'B',             code:'KeyB',       w:1 },
+    { label:'N',             code:'KeyN',       w:1 },
+    { label:'M',             code:'KeyM',       w:1 },
+    { label:',',  sub:'<',   code:'Comma',      w:1 },
+    { label:'.',  sub:'>',   code:'Period',     w:1 },
+    { label:'/',  sub:'?',   code:'Slash',      w:1 },
+    { label:'⇧ Shift',       code:'ShiftRight', w:3 },
+  ],
+  [
+    { label:'Ctrl',          code:'ControlLeft', w:15 },
+    { label:'Alt',           code:'AltLeft',     w:15 },
+    { label:'',              code:'Space',       w:7  },
+    { label:'Alt',           code:'AltRight',    w:15 },
+    { label:'Ctrl',          code:'ControlRight',w:15 },
+  ],
+];
+
+// ── build DOM ──────────────────────────────────────────────────────────────
+const kb = document.getElementById('keyboard');
+const codeToEl = {};
+
+ROWS.forEach(row => {
+  const rowEl = document.createElement('div');
+  rowEl.className = 'row';
+
+  row.forEach(k => {
+    const el = document.createElement('div');
+    el.className = `key w-${k.w}`;
+    el.dataset.code = k.code;
+
+    const mainEl = document.createElement('span');
+    mainEl.className = 'main';
+    mainEl.textContent = k.label;
+    el.appendChild(mainEl);
+
+    if (k.sub) {
+      const subEl = document.createElement('span');
+      subEl.className = 'sub';
+      subEl.textContent = k.sub;
+      el.appendChild(subEl);
+    }
+
+    el.addEventListener('mousedown', () => activateKey(k.code, k.label));
+    el.addEventListener('mouseup',   () => deactivateKey(k.code));
+    el.addEventListener('mouseleave',() => deactivateKey(k.code));
+
+    rowEl.appendChild(el);
+    codeToEl[k.code] = el;
+  });
+
+  kb.appendChild(rowEl);
+});
+
+// ── activate / deactivate ──────────────────────────────────────────────────
+const recentTimers = {};
+
+function activateKey(code, label) {
+  const el = codeToEl[code];
+  if (!el) return;
+  el.classList.add('active');
+  el.classList.remove('recent');
+  clearTimeout(recentTimers[code]);
+  addLog(label || code);
+}
+
+function deactivateKey(code) {
+  const el = codeToEl[code];
+  if (!el) return;
+  el.classList.remove('active');
+  el.classList.add('recent');
+  clearTimeout(recentTimers[code]);
+  recentTimers[code] = setTimeout(() => el.classList.remove('recent'), 600);
+}
+
+// ── keyboard events ────────────────────────────────────────────────────────
+const modifiers = { Shift: false, Control: false, Alt: false, Meta: false, CapsLock: false };
+
+document.addEventListener('keydown', e => {
+  e.preventDefault();
+  const code = e.code;
+  activateKey(code, e.key);
+  updateModBadges(e);
+});
+
+document.addEventListener('keyup', e => {
+  deactivateKey(e.code);
+  updateModBadges(e);
+});
+
+function updateModBadges(e) {
+  document.getElementById('badge-shift').classList.toggle('on', e.shiftKey);
+  document.getElementById('badge-ctrl').classList.toggle('on', e.ctrlKey);
+  document.getElementById('badge-alt').classList.toggle('on', e.altKey);
+  document.getElementById('badge-meta').classList.toggle('on', e.metaKey);
+  document.getElementById('badge-caps').classList.toggle('on', e.getModifierState('CapsLock'));
+}
+
+// ── log ────────────────────────────────────────────────────────────────────
+function addLog(label) {
+  const entries = document.getElementById('log-entries');
+  const chip = document.createElement('div');
+  chip.className = 'log-chip';
+  chip.textContent = label.length === 1 ? label : label;
+  entries.prepend(chip);
+  // keep max 20
+  while (entries.children.length > 20) entries.removeChild(entries.lastChild);
+}
+
+function clearLog() {
+  document.getElementById('log-entries').innerHTML = '';
+}
+</script>
+</body>
+</html>
