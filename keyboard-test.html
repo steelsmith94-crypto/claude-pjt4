@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,33 +7,148 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    /* ── theme tokens ── */
+    :root {
+      --bg:           #f5f5f7;
+      --surface:      #ffffff;
+      --border:       #e4e4e7;
+      --key-bg:       #ffffff;
+      --key-border:   #e0e0e5;
+      --key-shadow:   #dcdce3;
+      --key-hover-border: #c0c0cc;
+      --key-hover-shadow: #c8c8d2;
+      --key-active-bg:    #1a1a2e;
+      --key-active-border:#1a1a2e;
+      --key-recent-bg:    #f0f0ff;
+      --key-recent-border:#a0a0e0;
+      --text-main:    #222;
+      --text-sub:     #999;
+      --text-label:   #888;
+      --text-log-label:#bbb;
+      --chip-bg:      #f0f0f3;
+      --chip-text:    #444;
+      --badge-bg:     #f0f0f3;
+      --badge-text:   #bbb;
+      --badge-on-bg:  #1a1a2e;
+      --badge-on-text:#fff;
+      --clear-border: #ddd;
+      --clear-text:   #aaa;
+      --clear-hover-border: #999;
+      --clear-hover-text:   #555;
+      --toggle-bg:    #f0f0f3;
+      --toggle-text:  #555;
+      --toggle-hover-bg: #e4e4e7;
+    }
+
+    [data-theme="dark"] {
+      --bg:           #0f0f13;
+      --surface:      #1c1c24;
+      --border:       #2e2e3a;
+      --key-bg:       #23232f;
+      --key-border:   #35354a;
+      --key-shadow:   #111118;
+      --key-hover-border: #5050a0;
+      --key-hover-shadow: #2a2a50;
+      --key-active-bg:    #6060e0;
+      --key-active-border:#6060e0;
+      --key-recent-bg:    #2a2a4a;
+      --key-recent-border:#5050a0;
+      --text-main:    #e8e8f0;
+      --text-sub:     #5a5a7a;
+      --text-label:   #5a5a7a;
+      --text-log-label:#4a4a6a;
+      --chip-bg:      #2a2a3a;
+      --chip-text:    #c0c0d8;
+      --badge-bg:     #23232f;
+      --badge-text:   #5a5a7a;
+      --badge-on-bg:  #6060e0;
+      --badge-on-text:#fff;
+      --clear-border: #35354a;
+      --clear-text:   #5a5a7a;
+      --clear-hover-border: #6060e0;
+      --clear-hover-text:   #c0c0d8;
+      --toggle-bg:    #23232f;
+      --toggle-text:  #c0c0d8;
+      --toggle-hover-bg: #35354a;
+    }
+
     body {
       min-height: 100vh;
-      background: #f5f5f7;
+      background: var(--bg);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       user-select: none;
+      transition: background .25s;
+    }
+
+    /* ── header ── */
+    #header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
     }
 
     h1 {
       font-size: 1.1rem;
       font-weight: 500;
-      color: #888;
+      color: var(--text-label);
       letter-spacing: 0.12em;
       text-transform: uppercase;
-      margin-bottom: 32px;
     }
+
+    /* ── dark mode toggle ── */
+    #theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      background: var(--toggle-bg);
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--toggle-text);
+      letter-spacing: .04em;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    #theme-toggle:hover { background: var(--toggle-hover-bg); }
+
+    .toggle-track {
+      width: 30px;
+      height: 17px;
+      background: var(--border);
+      border-radius: 20px;
+      position: relative;
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    [data-theme="dark"] .toggle-track { background: #6060e0; }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 13px;
+      height: 13px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    [data-theme="dark"] .toggle-thumb { transform: translateX(13px); }
 
     /* ── log strip ── */
     #log {
       width: 820px;
       max-width: 96vw;
       height: 44px;
-      background: #fff;
-      border: 1px solid #e4e4e7;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -42,11 +157,12 @@
       overflow: hidden;
       margin-bottom: 28px;
       box-shadow: 0 1px 4px rgba(0,0,0,.04);
+      transition: background .25s, border-color .25s;
     }
 
     #log .label {
       font-size: .72rem;
-      color: #bbb;
+      color: var(--text-log-label);
       text-transform: uppercase;
       letter-spacing: .08em;
       white-space: nowrap;
@@ -62,28 +178,30 @@
     }
 
     .log-chip {
-      background: #f0f0f3;
+      background: var(--chip-bg);
       border-radius: 6px;
       padding: 3px 10px;
       font-size: .8rem;
-      color: #444;
+      color: var(--chip-text);
       white-space: nowrap;
       animation: fadeIn .12s ease;
       flex-shrink: 0;
+      transition: background .25s, color .25s;
     }
 
     @keyframes fadeIn { from { opacity: 0; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
 
     /* ── keyboard wrapper ── */
     #keyboard {
-      background: #fff;
-      border: 1px solid #e4e4e7;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 20px;
       padding: 22px 22px 20px;
       box-shadow: 0 4px 24px rgba(0,0,0,.06);
       display: flex;
       flex-direction: column;
       gap: 8px;
+      transition: background .25s, border-color .25s;
     }
 
     .row {
@@ -97,53 +215,52 @@
       position: relative;
       min-width: 44px;
       height: 44px;
-      background: #fff;
-      border: 1.5px solid #e0e0e5;
+      background: var(--key-bg);
+      border: 1.5px solid var(--key-border);
       border-radius: 8px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: background .08s, border-color .08s, box-shadow .08s, transform .06s;
-      box-shadow: 0 2px 0 #dcdce3, 0 2px 4px rgba(0,0,0,.05);
+      transition: background .1s, border-color .1s, box-shadow .1s, transform .06s, color .1s;
+      box-shadow: 0 2px 0 var(--key-shadow), 0 2px 4px rgba(0,0,0,.05);
       gap: 1px;
     }
 
     .key:hover {
-      border-color: #c0c0cc;
-      box-shadow: 0 2px 0 #c8c8d2, 0 3px 8px rgba(0,0,0,.08);
+      border-color: var(--key-hover-border);
+      box-shadow: 0 2px 0 var(--key-hover-shadow), 0 3px 8px rgba(0,0,0,.08);
     }
 
-    /* pressed state */
     .key.active {
-      background: #1a1a2e;
-      border-color: #1a1a2e;
-      color: #fff;
-      box-shadow: 0 0 0 #aaa, 0 1px 3px rgba(0,0,0,.15);
+      background: var(--key-active-bg);
+      border-color: var(--key-active-border);
+      box-shadow: 0 0 0 var(--key-shadow), 0 1px 3px rgba(0,0,0,.15);
       transform: translateY(2px);
     }
 
     .key.active .main,
     .key.active .sub { color: #fff; }
 
-    /* recently pressed (fades out) */
     .key.recent {
-      background: #f0f0ff;
-      border-color: #a0a0e0;
+      background: var(--key-recent-bg);
+      border-color: var(--key-recent-border);
     }
 
     .main {
       font-size: .82rem;
       font-weight: 500;
-      color: #222;
+      color: var(--text-main);
       line-height: 1;
+      transition: color .1s;
     }
 
     .sub {
       font-size: .6rem;
-      color: #999;
+      color: var(--text-sub);
       line-height: 1;
+      transition: color .1s;
     }
 
     /* ── size variants ── */
@@ -155,7 +272,7 @@
     .w-7  { min-width: 330px; }
     .w-backspace { min-width: 94px; }
 
-    /* ── status bar ── */
+    /* ── modifier badges ── */
     #modifiers {
       display: flex;
       gap: 12px;
@@ -169,16 +286,16 @@
       font-weight: 600;
       letter-spacing: .06em;
       text-transform: uppercase;
-      background: #f0f0f3;
-      color: #bbb;
+      background: var(--badge-bg);
+      color: var(--badge-text);
       border: 1.5px solid transparent;
       transition: all .1s;
     }
 
     .mod-badge.on {
-      background: #1a1a2e;
-      color: #fff;
-      border-color: #1a1a2e;
+      background: var(--badge-on-bg);
+      color: var(--badge-on-text);
+      border-color: var(--badge-on-bg);
     }
 
     /* ── clear button ── */
@@ -186,21 +303,30 @@
       margin-top: 20px;
       padding: 8px 24px;
       background: none;
-      border: 1.5px solid #ddd;
+      border: 1.5px solid var(--clear-border);
       border-radius: 20px;
       font-size: .78rem;
-      color: #aaa;
+      color: var(--clear-text);
       cursor: pointer;
       letter-spacing: .06em;
       text-transform: uppercase;
       transition: border-color .1s, color .1s;
     }
-    #clear-btn:hover { border-color: #999; color: #555; }
+    #clear-btn:hover {
+      border-color: var(--clear-hover-border);
+      color: var(--clear-hover-text);
+    }
   </style>
 </head>
 <body>
 
-<h1>Keyboard Test</h1>
+<div id="header">
+  <h1>Keyboard Test</h1>
+  <button id="theme-toggle" onclick="toggleTheme()">
+    <div class="toggle-track"><div class="toggle-thumb"></div></div>
+    <span id="toggle-label">Dark</span>
+  </button>
+</div>
 
 <div id="log">
   <span class="label">Last</span>
@@ -220,75 +346,90 @@
 <button id="clear-btn" onclick="clearLog()">Clear Log</button>
 
 <script>
+// ── theme ──────────────────────────────────────────────────────────────────
+const html = document.documentElement;
+const savedTheme = localStorage.getItem('kb-theme') || 'light';
+applyTheme(savedTheme);
+
+function applyTheme(theme) {
+  html.dataset.theme = theme;
+  document.getElementById('toggle-label').textContent = theme === 'dark' ? 'Light' : 'Dark';
+  localStorage.setItem('kb-theme', theme);
+}
+
+function toggleTheme() {
+  applyTheme(html.dataset.theme === 'dark' ? 'light' : 'dark');
+}
+
 // ── layout definition ──────────────────────────────────────────────────────
 const ROWS = [
   [
-    { label:'`',  sub:'~',   code:'Backquote',  w:1 },
-    { label:'1',  sub:'!',   code:'Digit1',     w:1 },
-    { label:'2',  sub:'@',   code:'Digit2',     w:1 },
-    { label:'3',  sub:'#',   code:'Digit3',     w:1 },
-    { label:'4',  sub:'$',   code:'Digit4',     w:1 },
-    { label:'5',  sub:'%',   code:'Digit5',     w:1 },
-    { label:'6',  sub:'^',   code:'Digit6',     w:1 },
-    { label:'7',  sub:'&',   code:'Digit7',     w:1 },
-    { label:'8',  sub:'*',   code:'Digit8',     w:1 },
-    { label:'9',  sub:'(',   code:'Digit9',     w:1 },
-    { label:'0',  sub:')',   code:'Digit0',     w:1 },
-    { label:'-',  sub:'_',   code:'Minus',      w:1 },
-    { label:'=',  sub:'+',   code:'Equal',      w:1 },
-    { label:'⌫',            code:'Backspace',  w:'backspace' },
+    { label:'`',  sub:'~',   code:'Backquote',   w:1 },
+    { label:'1',  sub:'!',   code:'Digit1',      w:1 },
+    { label:'2',  sub:'@',   code:'Digit2',      w:1 },
+    { label:'3',  sub:'#',   code:'Digit3',      w:1 },
+    { label:'4',  sub:'$',   code:'Digit4',      w:1 },
+    { label:'5',  sub:'%',   code:'Digit5',      w:1 },
+    { label:'6',  sub:'^',   code:'Digit6',      w:1 },
+    { label:'7',  sub:'&',   code:'Digit7',      w:1 },
+    { label:'8',  sub:'*',   code:'Digit8',      w:1 },
+    { label:'9',  sub:'(',   code:'Digit9',      w:1 },
+    { label:'0',  sub:')',   code:'Digit0',      w:1 },
+    { label:'-',  sub:'_',   code:'Minus',       w:1 },
+    { label:'=',  sub:'+',   code:'Equal',       w:1 },
+    { label:'⌫',             code:'Backspace',   w:'backspace' },
   ],
   [
-    { label:'Tab',           code:'Tab',        w:15 },
-    { label:'Q',             code:'KeyQ',       w:1 },
-    { label:'W',             code:'KeyW',       w:1 },
-    { label:'E',             code:'KeyE',       w:1 },
-    { label:'R',             code:'KeyR',       w:1 },
-    { label:'T',             code:'KeyT',       w:1 },
-    { label:'Y',             code:'KeyY',       w:1 },
-    { label:'U',             code:'KeyU',       w:1 },
-    { label:'I',             code:'KeyI',       w:1 },
-    { label:'O',             code:'KeyO',       w:1 },
-    { label:'P',             code:'KeyP',       w:1 },
-    { label:'[',  sub:'{',   code:'BracketLeft', w:1 },
-    { label:']',  sub:'}',   code:'BracketRight',w:1 },
-    { label:'\\', sub:'|',   code:'Backslash',  w:15 },
+    { label:'Tab',            code:'Tab',         w:15 },
+    { label:'Q',              code:'KeyQ',        w:1 },
+    { label:'W',              code:'KeyW',        w:1 },
+    { label:'E',              code:'KeyE',        w:1 },
+    { label:'R',              code:'KeyR',        w:1 },
+    { label:'T',              code:'KeyT',        w:1 },
+    { label:'Y',              code:'KeyY',        w:1 },
+    { label:'U',              code:'KeyU',        w:1 },
+    { label:'I',              code:'KeyI',        w:1 },
+    { label:'O',              code:'KeyO',        w:1 },
+    { label:'P',              code:'KeyP',        w:1 },
+    { label:'[',  sub:'{',   code:'BracketLeft',  w:1 },
+    { label:']',  sub:'}',   code:'BracketRight', w:1 },
+    { label:'\\', sub:'|',   code:'Backslash',    w:15 },
   ],
   [
-    { label:'Caps',          code:'CapsLock',   w:2 },
-    { label:'A',             code:'KeyA',       w:1 },
-    { label:'S',             code:'KeyS',       w:1 },
-    { label:'D',             code:'KeyD',       w:1 },
-    { label:'F',             code:'KeyF',       w:1 },
-    { label:'G',             code:'KeyG',       w:1 },
-    { label:'H',             code:'KeyH',       w:1 },
-    { label:'J',             code:'KeyJ',       w:1 },
-    { label:'K',             code:'KeyK',       w:1 },
-    { label:'L',             code:'KeyL',       w:1 },
-    { label:';',  sub:':',   code:'Semicolon',  w:1 },
-    { label:"'",  sub:'"',   code:'Quote',      w:1 },
-    { label:'↵',             code:'Enter',      w:25 },
+    { label:'Caps',           code:'CapsLock',    w:2 },
+    { label:'A',              code:'KeyA',        w:1 },
+    { label:'S',              code:'KeyS',        w:1 },
+    { label:'D',              code:'KeyD',        w:1 },
+    { label:'F',              code:'KeyF',        w:1 },
+    { label:'G',              code:'KeyG',        w:1 },
+    { label:'H',              code:'KeyH',        w:1 },
+    { label:'J',              code:'KeyJ',        w:1 },
+    { label:'K',              code:'KeyK',        w:1 },
+    { label:'L',              code:'KeyL',        w:1 },
+    { label:';',  sub:':',   code:'Semicolon',    w:1 },
+    { label:"'",  sub:'"',   code:'Quote',        w:1 },
+    { label:'↵',              code:'Enter',       w:25 },
   ],
   [
-    { label:'⇧ Shift',       code:'ShiftLeft',  w:25 },
-    { label:'Z',             code:'KeyZ',       w:1 },
-    { label:'X',             code:'KeyX',       w:1 },
-    { label:'C',             code:'KeyC',       w:1 },
-    { label:'V',             code:'KeyV',       w:1 },
-    { label:'B',             code:'KeyB',       w:1 },
-    { label:'N',             code:'KeyN',       w:1 },
-    { label:'M',             code:'KeyM',       w:1 },
-    { label:',',  sub:'<',   code:'Comma',      w:1 },
-    { label:'.',  sub:'>',   code:'Period',     w:1 },
-    { label:'/',  sub:'?',   code:'Slash',      w:1 },
-    { label:'⇧ Shift',       code:'ShiftRight', w:3 },
+    { label:'⇧ Shift',        code:'ShiftLeft',   w:25 },
+    { label:'Z',              code:'KeyZ',        w:1 },
+    { label:'X',              code:'KeyX',        w:1 },
+    { label:'C',              code:'KeyC',        w:1 },
+    { label:'V',              code:'KeyV',        w:1 },
+    { label:'B',              code:'KeyB',        w:1 },
+    { label:'N',              code:'KeyN',        w:1 },
+    { label:'M',              code:'KeyM',        w:1 },
+    { label:',',  sub:'<',   code:'Comma',        w:1 },
+    { label:'.',  sub:'>',   code:'Period',       w:1 },
+    { label:'/',  sub:'?',   code:'Slash',        w:1 },
+    { label:'⇧ Shift',        code:'ShiftRight',  w:3 },
   ],
   [
-    { label:'Ctrl',          code:'ControlLeft', w:15 },
-    { label:'Alt',           code:'AltLeft',     w:15 },
-    { label:'',              code:'Space',       w:7  },
-    { label:'Alt',           code:'AltRight',    w:15 },
-    { label:'Ctrl',          code:'ControlRight',w:15 },
+    { label:'Ctrl',           code:'ControlLeft',  w:15 },
+    { label:'Alt',            code:'AltLeft',      w:15 },
+    { label:'',               code:'Space',        w:7  },
+    { label:'Alt',            code:'AltRight',     w:15 },
+    { label:'Ctrl',           code:'ControlRight', w:15 },
   ],
 ];
 
@@ -350,12 +491,9 @@ function deactivateKey(code) {
 }
 
 // ── keyboard events ────────────────────────────────────────────────────────
-const modifiers = { Shift: false, Control: false, Alt: false, Meta: false, CapsLock: false };
-
 document.addEventListener('keydown', e => {
   e.preventDefault();
-  const code = e.code;
-  activateKey(code, e.key);
+  activateKey(e.code, e.key);
   updateModBadges(e);
 });
 
@@ -377,9 +515,8 @@ function addLog(label) {
   const entries = document.getElementById('log-entries');
   const chip = document.createElement('div');
   chip.className = 'log-chip';
-  chip.textContent = label.length === 1 ? label : label;
+  chip.textContent = label;
   entries.prepend(chip);
-  // keep max 20
   while (entries.children.length > 20) entries.removeChild(entries.lastChild);
 }
 
